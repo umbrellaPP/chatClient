@@ -33,6 +33,11 @@ public slots:
     void disconnected();
     void receivePackage();  // 接收数据包
 
+    bool event(QEvent *event);
+
+signals:
+    void connectedToServer();
+
 private:
     Client();
 

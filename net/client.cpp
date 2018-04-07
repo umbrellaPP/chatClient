@@ -1,5 +1,6 @@
 ﻿#include "client.h"
 #include <QDebug>
+#include "util/myevent.h"
 
 const QString ip = "127.0.0.1";
 const int port = 8090;
@@ -25,6 +26,7 @@ void Client::sendPackage(Code code, QJsonObject obj) {
 void Client::connected() {
     qDebug() << "连接服务器成功";
     connect(this->socket, SIGNAL(readyRead()), this, SLOT(receivePackage()));
+    emit this->connectedToServer();
 }
 
 void Client::connectError(QAbstractSocket::SocketError err) {
@@ -41,5 +43,11 @@ void Client::receivePackage() {
         this->handler.handle(this->socket, package);
     } else {
         qDebug() << "不存在数据包";
+    }
+}
+
+bool Client::event(QEvent *event){
+    if (event->type() == Event::Test1){
+        qDebug() << "testsetset";
     }
 }

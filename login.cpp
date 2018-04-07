@@ -1,22 +1,28 @@
 ﻿#include "login.h"
 #include "ui_login.h"
+#include <QCoreApplication>
+#include <QEvent>
+#include "util/myevent.h"
 
 Login::Login(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Login)
 {
     ui->setupUi(this);
+    MyEvent *e = new MyEvent(QEvent::Type(Event::Test1));
+    QCoreApplication::sendEvent(Net, e);
 
     this->mode = Mode::LOGIN;
     this->updateUI();
     Net->initWeb();
+    connect(Net, SIGNAL(connectedToServer()), this, SLOT(connectedToServer()));
 }
 
 Login::~Login() {
     delete ui;
 }
 
-Login::updateUI() {
+void Login::updateUI() {
     bool isLoginMode = (this->mode == Mode::LOGIN);
     ui->btnCanel->setVisible(!isLoginMode);
     ui->btnLogin->setVisible(isLoginMode);
@@ -65,7 +71,8 @@ void Login::on_btnReg_clicked() {
             qDebug() << "未连接服务器";
             return;
         }
-        if (ui->lineEditUserName->text().isEmpty()) {
+        QString userName = ui->lineEditUserName->text();
+        if (userName.isEmpty()) {
             ui->lineEditUserName->setPlaceholderText("用户名不能为空");
             return;
         }
@@ -79,12 +86,23 @@ void Login::on_btnReg_clicked() {
             return;
         }
 
-        // todo 注册
-
+        QJsonObject obj;
+        obj.insert("userName", userName);
+        obj.insert("password", password);
+        Net->sendPackage(Code::C2S_REGISTER, obj);
     }
 }
 
 void Login::on_btnCanel_clicked() {
     this->mode = Mode::LOGIN;
     this->updateUI();
+}
+
+void Login::connectedToServer() {
+    this->enableBtns();
+}
+
+void Login::enableBtns() {
+    ui->btnLogin->setEnabled(true);
+    ui->btnReg->setEnabled(true);
 }

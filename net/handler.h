@@ -23,6 +23,10 @@ private:
 
     void handleLogin(QTcpSocket *socket, QJsonObject data);
     void handleRegister(QTcpSocket *socket, QJsonObject data);
+    void handleGetFriendList(QTcpSocket *socket, QJsonObject data);
+    void handleAddFriend(QTcpSocket *socket, QJsonObject data);
+    void handleRemoveFriend(QTcpSocket *socket, QJsonObject data);
+    void handleSendMsg(QTcpSocket *socket, QJsonObject data);
 };
 
 #endif // HANDLER_H

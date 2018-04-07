@@ -27,11 +27,13 @@ public:
 private slots:
     void on_btnLogin_clicked();
     void on_btnReg_clicked();
-
     void on_btnCanel_clicked();
 
+    void connectedToServer();
+
 private:
-    updateUI();
+    void updateUI();
+    void enableBtns();
 
     Mode mode;
 
