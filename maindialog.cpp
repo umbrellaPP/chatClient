@@ -51,6 +51,33 @@ void MainDialog::initUserData(QJsonObject data) {
     this->setWindowTitle(userName + " - " + accountId);
 }
 
+void MainDialog::redirectCurrentChatting(ChattingType type, QString id) {
+    CurrentChatting cc = DataMgr->getCurrentChatting();
+    if (cc.type == type && cc.id == id) {
+        for (int i = 0; i < ui->listWidgetFriends->count(); ++i) {
+            auto item = ui->listWidgetFriends->itemAt(i, 0);
+            auto accountId = item->toolTip();
+            if (accountId != id) {
+                this->friendListItemClicked(item);
+                return;
+            }
+        }
+        for (int i = 0; i < ui->listWidgetGroups->count(); ++i) {
+            auto item = ui->listWidgetGroups->itemAt(i, 0);
+            auto groupId = item->toolTip();
+            if (groupId != id) {
+                this->groupListItemClicked(item);
+                return;
+            }
+        }
+        DataMgr->setCurrentChatting("", ChattingType::NONE);
+        ui->labelCurrentChatting->setText("当前聊天: 无");
+        ui->listWidgetChat->clear();
+        ui->btnDelFriend->setEnabled(false);
+        ui->btnQuitGroup->setEnabled(false);
+    }
+}
+
 void MainDialog::on_btnAddFriend_clicked() {
     DialogMgr->showAddFriend();
 }
@@ -62,6 +89,8 @@ void MainDialog::removeFriend(QJsonObject data) {
         QString friendId = data.value("friendId").toString();
         QMessageBox::information(this, "删除成功", QString("好友%1 (%2)已经删除")
                                  .arg(friendId).arg(friendUserName));
+
+        this->redirectCurrentChatting(ChattingType::PERSONAL, friendId);
     } else if (result == 1) {
         QMessageBox::information(this, "删除失败", "好友不存在");
     }
@@ -106,6 +135,7 @@ void MainDialog::friendListItemClicked(QListWidgetItem *item) {
 
     item->setTextColor(Qt::black);
     ui->listWidgetChat->setCurrentRow(ui->listWidgetChat->count()-1);
+    ui->listWidgetFriends->setCurrentItem(item);
     ui->listWidgetGroups->setCurrentRow(-1);
     ui->btnDelFriend->setEnabled(true);
     ui->btnQuitGroup->setEnabled(false);
@@ -128,13 +158,14 @@ void MainDialog::groupListItemClicked(QListWidgetItem *item) {
     }
     item->setTextColor(Qt::black);
     ui->listWidgetChat->setCurrentRow(ui->listWidgetChat->count()-1);
+    ui->listWidgetGroups->setCurrentItem(item);
     ui->listWidgetFriends->setCurrentRow(-1);
     ui->btnDelFriend->setEnabled(false);
     ui->btnQuitGroup->setEnabled(true);
 
     QJsonObject package;
     package.insert("groupId", groupId);
-    Net->sendPackage(Code::C2S_UPDATE_MEMBERS, package);
+    Net->sendPackage(CodeNS::C2S_UPDATE_MEMBERS, package);
 }
 
 void MainDialog::on_pushButtonSend_clicked() {
@@ -153,7 +184,7 @@ void MainDialog::on_pushButtonSend_clicked() {
         package.insert("fromId", fromId);
         package.insert("toId", toId);
         package.insert("msg", msg);
-        Net->sendPackage(Code::C2S_SEND_MSG, package);
+        Net->sendPackage(CodeNS::C2S_SEND_MSG, package);
     } else if (cc.type == ChattingType::GROUP) {
         QString accountId = DataMgr->getAccountId();
         QString groupId = cc.id;
@@ -166,7 +197,7 @@ void MainDialog::on_pushButtonSend_clicked() {
         package.insert("groupId", groupId);
         package.insert("msg", msg);
         qDebug() << package;
-        Net->sendPackage(Code::C2S_SEND_GROUP_MSG, package);
+        Net->sendPackage(CodeNS::C2S_SEND_GROUP_MSG, package);
     }
 
     ui->textEditChat->clear();
@@ -245,7 +276,7 @@ void MainDialog::findGroup(QJsonObject data) {
             QJsonObject package;
             package.insert("accountId", DataMgr->getAccountId());
             package.insert("groupId", groupId);
-            Net->sendPackage(Code::C2S_JOIN_GROUP, package);
+            Net->sendPackage(CodeNS::C2S_JOIN_GROUP, package);
         }
     } else if (result == 1) {
         QMessageBox::information(this, "查找失败", "查无此群");
@@ -269,9 +300,11 @@ void MainDialog::updateMembers(QJsonObject data) {
     QString groupId = data.value("groupId").toString();
     QString groupName = data.value("groupName").toString();
     QString memberUserNames = data.value("memberUserNames").toString();
-
-    ui->labelCurrentChatting->setText(QString("当前聊天: 群 %1 - %2\n群成员: %3")
-                                      .arg(groupName).arg(groupId).arg(memberUserNames));
+    auto cc = DataMgr->getCurrentChatting();
+    if (cc.type == ChattingType::GROUP && cc.id == groupId) {
+        ui->labelCurrentChatting->setText(QString("当前聊天: 群 %1 - %2\n群成员: %3")
+                                          .arg(groupName).arg(groupId).arg(memberUserNames));
+    }
 }
 
 void MainDialog::newGroupMsg(QJsonObject data) {
@@ -295,12 +328,16 @@ void MainDialog::quitGroup(QJsonObject data) {
         QString groupName = data.value("groupName").toString();
         QMessageBox::information(this, "退群成功",
                                  QString("群%1 (%2)已经解散").arg(groupId).arg(groupName));
+
+        this->redirectCurrentChatting(ChattingType::GROUP, groupId);
     } else if (result == 1) {
         // 退群
         QString groupId = data.value("groupId").toString();
         QString groupName = data.value("groupName").toString();
         QMessageBox::information(this, "退群成功",
                                  QString("你已经退出群%1 (%2)").arg(groupId).arg(groupName));
+
+        this->redirectCurrentChatting(ChattingType::GROUP, groupId);
     }
 }
 
@@ -327,7 +364,7 @@ void MainDialog::on_btnCreateGroup_clicked() {
             QJsonObject package;
             package.insert("groupName", groupName);
             package.insert("accountId", DataMgr->getAccountId());
-            Net->sendPackage(Code::C2S_CREATE_GROUP, package);
+            Net->sendPackage(CodeNS::C2S_CREATE_GROUP, package);
         }
     }
 }
@@ -338,7 +375,7 @@ void MainDialog::on_btnJoinGroup_clicked() {
     if (ok) {
         QJsonObject package;
         package.insert("groupId", groupId);
-        Net->sendPackage(Code::C2S_FIND_GROUP, package);
+        Net->sendPackage(CodeNS::C2S_FIND_GROUP, package);
     }
 }
 
@@ -349,7 +386,7 @@ void MainDialog::on_btnDelFriend_clicked() {
 
     package.insert("accountId", accountId);
     package.insert("friendId", friendId);
-    Net->sendPackage(Code::C2S_REMOVE_FRIEND, package);
+    Net->sendPackage(CodeNS::C2S_REMOVE_FRIEND, package);
 }
 
 void MainDialog::on_btnQuitGroup_clicked() {
@@ -359,5 +396,5 @@ void MainDialog::on_btnQuitGroup_clicked() {
 
     package.insert("accountId", accountId);
     package.insert("groupId", groupId);
-    Net->sendPackage(Code::C2S_QUIT_GROUP, package);
+    Net->sendPackage(CodeNS::C2S_QUIT_GROUP, package);
 }

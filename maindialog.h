@@ -20,6 +20,7 @@ public:
     ~MainDialog();
 
     void initUserData(QJsonObject data);
+    void redirectCurrentChatting(ChattingType type, QString id);
 
 private slots:
     void on_btnAddFriend_clicked();

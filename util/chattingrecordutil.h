@@ -18,11 +18,14 @@ public:
     void init();
     QJsonArray readRecord(ChattingType type, QString currentId, QString chattingId);
     void writeRecord(ChattingType type, QString currentId, QString chattingId, QString newMsg);
+    void removeRecord(ChattingType type, QString currentId, QString chattingId);
 
 public slots:
     void newMsg(QJsonObject data);
     void sendMsg(QJsonObject data);
     void newGroupMsg(QJsonObject data);
+    void removeFriend(QJsonObject data);
+    void quitGroup(QJsonObject data);
 
 private:
     QString generateFileName(ChattingType type, QString currentId, QString chattingId);

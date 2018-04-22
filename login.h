@@ -30,6 +30,7 @@ private slots:
     void on_btnCanel_clicked();
 
     void connectedToServer();
+    void registered(QJsonObject data);
 
 private:
     void updateUI();

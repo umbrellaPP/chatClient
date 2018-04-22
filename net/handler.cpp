@@ -5,22 +5,22 @@
 
 Handler::Handler() {
     // 注册路由
-    this->handlerDict.insert(Code::S2C_LOGIN, Handler::handleLogin);
-    this->handlerDict.insert(Code::S2C_REGISTER, Handler::handleRegister);
-    this->handlerDict.insert(Code::S2C_UPDATE_FRIENDS_LIST, Handler::handleUpdateFriendList);
-    this->handlerDict.insert(Code::S2C_FIND_FRIEND, Handler::handleFindFriend);
-    this->handlerDict.insert(Code::S2C_ADD_FRIEND, Handler::handleAddFriend);
-    this->handlerDict.insert(Code::S2C_REMOVE_FRIEND, Handler::handleRemoveFriend);
-    this->handlerDict.insert(Code::S2C_SEND_MSG, Handler::handleSendMsg);
-    this->handlerDict.insert(Code::S2C_NEW_MSG, Handler::handleNewMsg);
+    this->handlerDict.insert(CodeNS::S2C_LOGIN, Handler::handleLogin);
+    this->handlerDict.insert(CodeNS::S2C_REGISTER, Handler::handleRegister);
+    this->handlerDict.insert(CodeNS::S2C_UPDATE_FRIENDS_LIST, Handler::handleUpdateFriendList);
+    this->handlerDict.insert(CodeNS::S2C_FIND_FRIEND, Handler::handleFindFriend);
+    this->handlerDict.insert(CodeNS::S2C_ADD_FRIEND, Handler::handleAddFriend);
+    this->handlerDict.insert(CodeNS::S2C_REMOVE_FRIEND, Handler::handleRemoveFriend);
+    this->handlerDict.insert(CodeNS::S2C_SEND_MSG, Handler::handleSendMsg);
+    this->handlerDict.insert(CodeNS::S2C_NEW_MSG, Handler::handleNewMsg);
 
-    this->handlerDict.insert(Code::S2C_CREATE_GROUP, Handler::handleCreateGroup);
-    this->handlerDict.insert(Code::S2C_UPDATE_GROUPS_LIST, Handler::handleUpdateGroupsList);
-    this->handlerDict.insert(Code::S2C_FIND_GROUP, Handler::handleFindGroup);
-    this->handlerDict.insert(Code::S2C_JOIN_GROUP, Handler::handleJoinGroup);
-    this->handlerDict.insert(Code::S2C_UPDATE_MEMBERS, Handler::handleUpdateMembers);
-    this->handlerDict.insert(Code::S2C_NEW_GROUP_MSG, Handler::handleNewGroupMsg);
-    this->handlerDict.insert(Code::S2C_QUIT_GROUP, Handler::handleQuitGroup);
+    this->handlerDict.insert(CodeNS::S2C_CREATE_GROUP, Handler::handleCreateGroup);
+    this->handlerDict.insert(CodeNS::S2C_UPDATE_GROUPS_LIST, Handler::handleUpdateGroupsList);
+    this->handlerDict.insert(CodeNS::S2C_FIND_GROUP, Handler::handleFindGroup);
+    this->handlerDict.insert(CodeNS::S2C_JOIN_GROUP, Handler::handleJoinGroup);
+    this->handlerDict.insert(CodeNS::S2C_UPDATE_MEMBERS, Handler::handleUpdateMembers);
+    this->handlerDict.insert(CodeNS::S2C_NEW_GROUP_MSG, Handler::handleNewGroupMsg);
+    this->handlerDict.insert(CodeNS::S2C_QUIT_GROUP, Handler::handleQuitGroup);
 }
 
 void Handler::handle(QTcpSocket *socket, QByteArray package) {
@@ -33,7 +33,7 @@ void Handler::handle(QTcpSocket *socket, QByteArray package) {
     } else {
         qDebug() << "找不到对应的处理器处理 code " + code;
     }
-    qDebug() << "客户端接收package: " << code << obj;
+    qDebug() << "package: " << code << obj;
 }
 
 void Handler::handleLogin(QTcpSocket *socket, QJsonObject data) {
@@ -45,8 +45,8 @@ void Handler::handleLogin(QTcpSocket *socket, QJsonObject data) {
         package.insert("accountId", accountId);
         // todo 登录成功
         emit logined(data);
-        Net->sendPackage(Code::C2S_GET_FRIENDS_LIST, package);
-        Net->sendPackage(Code::C2S_GET_GROUP_LIST, package);
+        Net->sendPackage(CodeNS::C2S_GET_FRIENDS_LIST, package);
+        Net->sendPackage(CodeNS::C2S_GET_GROUP_LIST, package);
     } else if (result == 1) {
         QMessageBox::information(nullptr, "登录失败", "不存在此用户");
     } else if (result == 2) {
@@ -57,12 +57,7 @@ void Handler::handleLogin(QTcpSocket *socket, QJsonObject data) {
 }
 
 void Handler::handleRegister(QTcpSocket *socket, QJsonObject data) {
-    double result = data.value("result").toDouble();
-    if (result == 0) {
-        QMessageBox::information(nullptr, "注册成功", "注册成功");
-    } else if (result == 1) {
-        QMessageBox::information(nullptr, "注册失败", "注册失败");
-    }
+    emit registered(data);
 }
 
 void Handler::handleUpdateFriendList(QTcpSocket *socket, QJsonObject data) {

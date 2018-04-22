@@ -7,14 +7,15 @@
 #define DataMgr DataMamager::getInstance()
 
 enum ChattingType{
-    PERSONAL = 0,
+    NONE = 0,
+    PERSONAL,
     GROUP
 };
 
 struct CurrentChatting{
     CurrentChatting(){
         this->id = "";
-        this->type = ChattingType::PERSONAL;
+        this->type = ChattingType::NONE;
     }
     QString id;
     ChattingType type;

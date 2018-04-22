@@ -12,6 +12,8 @@ void ChattingRecordUtil::init(){
     connect(Net->handler, SIGNAL(newMsg(QJsonObject)), this, SLOT(newMsg(QJsonObject)));
     connect(Net->handler, SIGNAL(sendMsg(QJsonObject)), this, SLOT(sendMsg(QJsonObject)));
     connect(Net->handler, SIGNAL(newGroupMsg(QJsonObject)), this, SLOT(newGroupMsg(QJsonObject)));
+    connect(Net->handler, SIGNAL(removeFriend(QJsonObject)), this, SLOT(removeFriend(QJsonObject)));
+    connect(Net->handler, SIGNAL(quitGroup(QJsonObject)), this, SLOT(quitGroup(QJsonObject)));
 }
 
 QJsonArray ChattingRecordUtil::readRecord(ChattingType type,
@@ -36,6 +38,12 @@ void ChattingRecordUtil::writeRecord(ChattingType type, QString currentId,
     // 后写
     recResult.push_back(newMsg);
     file.write(QJsonDocument(recResult).toJson());
+}
+
+void ChattingRecordUtil::removeRecord(ChattingType type, QString currentId, QString chattingId) {
+    QString fileName = this->generateFileName(type, currentId, chattingId);
+    QFile file(fileName);
+    file.remove();
 }
 
 void ChattingRecordUtil::newMsg(QJsonObject data) {
@@ -74,6 +82,16 @@ void ChattingRecordUtil::newGroupMsg(QJsonObject data) {
     QString msg = data.value("msg").toString();
 
     this->writeRecord(type, accountId, groupId, fromUserName+": "+msg);
+}
+
+void ChattingRecordUtil::removeFriend(QJsonObject data) {
+    QString chattingId = data.value("friendId").toString();
+    this->removeRecord(ChattingType::PERSONAL, DataMgr->getAccountId(), chattingId);
+}
+
+void ChattingRecordUtil::quitGroup(QJsonObject data) {
+    QString chattingId = data.value("groupId").toString();
+    this->removeRecord(ChattingType::GROUP, DataMgr->getAccountId(), chattingId);
 }
 
 QString ChattingRecordUtil::generateFileName(ChattingType type,

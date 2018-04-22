@@ -13,6 +13,7 @@ Login::Login(QWidget *parent) :
     this->updateUI();
 
     connect(Net, SIGNAL(connectedToServer()), this, SLOT(connectedToServer()));
+    connect(Net->handler, SIGNAL(registered(QJsonObject)), this, SLOT(registered(QJsonObject)));
 }
 
 Login::~Login() {
@@ -56,7 +57,7 @@ void Login::on_btnLogin_clicked() {
     QJsonObject obj;
     obj.insert("accountId", accountId);
     obj.insert("password", password);
-    Net->sendPackage(Code::C2S_LOGIN, obj);
+    Net->sendPackage(CodeNS::C2S_LOGIN, obj);
 }
 
 void Login::on_btnReg_clicked() {
@@ -86,7 +87,7 @@ void Login::on_btnReg_clicked() {
         QJsonObject obj;
         obj.insert("userName", userName);
         obj.insert("password", password);
-        Net->sendPackage(Code::C2S_REGISTER, obj);
+        Net->sendPackage(CodeNS::C2S_REGISTER, obj);
     }
 }
 
@@ -97,6 +98,20 @@ void Login::on_btnCanel_clicked() {
 
 void Login::connectedToServer() {
     this->enableBtns();
+}
+
+void Login::registered(QJsonObject data) {
+    double result = data.value("result").toDouble();
+    if (result == 0) {
+        QMessageBox::information(nullptr, "注册成功", "注册成功");
+
+        QString accountId = data.value("accountId").toString();
+        ui->lineEditAccountId->setText(accountId);
+        this->mode = Mode::LOGIN;
+        this->updateUI();
+    } else if (result == 1) {
+        QMessageBox::information(nullptr, "注册失败", "注册失败");
+    }
 }
 
 void Login::enableBtns() {

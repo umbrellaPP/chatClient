@@ -54,7 +54,7 @@ void AddFriend::on_btnSelect_clicked() {
     QJsonObject obj;
     obj.insert("accountId", accountId);
 
-    Net->sendPackage(Code::C2S_FIND_FRIEND, obj);
+    Net->sendPackage(CodeNS::C2S_FIND_FRIEND, obj);
 }
 
 void AddFriend::onIdChanged() {
@@ -87,7 +87,7 @@ void AddFriend::on_btnAdd_clicked() {
     QString friendId = ui->lineEditId->text();
     package.insert("accountId", accountId);
     package.insert("friendId", friendId);
-    Net->sendPackage(Code::C2S_ADD_FRIEND, package);
+    Net->sendPackage(CodeNS::C2S_ADD_FRIEND, package);
 
     this->showRequestSent();
 }
