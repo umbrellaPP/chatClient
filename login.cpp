@@ -2,19 +2,16 @@
 #include "ui_login.h"
 #include <QCoreApplication>
 #include <QEvent>
-#include "util/myevent.h"
 
 Login::Login(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Login)
 {
     ui->setupUi(this);
-    MyEvent *e = new MyEvent(QEvent::Type(Event::Test1));
-    QCoreApplication::sendEvent(Net, e);
 
     this->mode = Mode::LOGIN;
     this->updateUI();
-    Net->initWeb();
+
     connect(Net, SIGNAL(connectedToServer()), this, SLOT(connectedToServer()));
 }
 

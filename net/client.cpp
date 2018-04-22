@@ -1,12 +1,16 @@
 ﻿#include "client.h"
 #include <QDebug>
-#include "util/myevent.h"
 
 const QString ip = "127.0.0.1";
 const int port = 8090;
 
 Client::Client() {
 
+}
+
+void Client::init() {
+    this->handler = new Handler();
+    this->initWeb();
 }
 
 void Client::initWeb() {
@@ -21,6 +25,7 @@ void Client::initWeb() {
 void Client::sendPackage(Code code, QJsonObject obj) {
     QByteArray package = JsonTool->generatePackage(code, obj);
     this->socket->write(package);
+    this->socket->write(";");
 }
 
 void Client::connected() {
@@ -38,16 +43,14 @@ void Client::disconnected() {
 }
 
 void Client::receivePackage() {
-    QByteArray package = this->socket->readAll();
-    if (!package.isEmpty()) {
-        this->handler.handle(this->socket, package);
-    } else {
-        qDebug() << "不存在数据包";
-    }
-}
-
-bool Client::event(QEvent *event){
-    if (event->type() == Event::Test1){
-        qDebug() << "testsetset";
+    QByteArray content = this->socket->readAll();
+    QList<QByteArray> list = content.split(';');
+    list.pop_back();
+    for (QByteArray package: list){
+        if (!package.isEmpty()) {
+            this->handler->handle(this->socket, package);
+        } else {
+            qDebug() << "不存在数据包";
+        }
     }
 }

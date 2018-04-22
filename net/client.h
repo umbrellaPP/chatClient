@@ -21,19 +21,21 @@ public:
         return _instance;
     }
 
+    void init();
     void initWeb();
+
     void sendPackage(Code code, QJsonObject obj);  // 发送数据包
     bool isConnected() {
         return this->socket->state() == QAbstractSocket::ConnectedState;
     }
+
+    Handler *handler;
 
 public slots:
     void connected();
     void connectError(QAbstractSocket::SocketError err);
     void disconnected();
     void receivePackage();  // 接收数据包
-
-    bool event(QEvent *event);
 
 signals:
     void connectedToServer();
@@ -42,7 +44,6 @@ private:
     Client();
 
     QTcpSocket *socket;
-    Handler handler;
 };
 
 #endif // CLIENT_H

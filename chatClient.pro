@@ -27,12 +27,26 @@ SOURCES += main.cpp\
         login.cpp \
     net/handler.cpp \
     util/jsonparser.cpp \
-    net/client.cpp
+    net/client.cpp \
+    util/dialogmgr.cpp \
+    maindialog.cpp \
+    addfriend.cpp \
+    util/datamamager.cpp \
+    util/chattingrecordutil.cpp
 
 HEADERS  += login.h \
     define.h \
     net/handler.h \
     util/jsonparser.h \
-    net/client.h
+    net/client.h \
+    util/dialogmgr.h \
+    maindialog.h \
+    addfriend.h \
+    util/datamamager.h \
+    util/chattingrecordutil.h
 
-FORMS    += login.ui
+FORMS    += login.ui \
+    maindialog.ui \
+    addfriend.ui
+
+RESOURCES +=
